@@ -28,9 +28,9 @@ import com.restfb.FacebookClient;
 
 public class LuceneTest 
 {
+	private static final String AccessToken = PrivateResource.accessToken;
 	public static void main(String[] args)
 	{
-		String ACCESS_TOKEN = "CAACEdEose0cBAFjzGVYvTmm3xjLgu8rpPGI3BTccZB3ZCdyzNKJutRbvquoZAJprcQ7XronnKRGIHR1dc1SMZAw9LyrknGQOlYqup1fln1fwvzxssjuaepRKZBznRoMiYzYzuWZAqT1uyikUTmMKFs1wAsd6exglelSzNDFi66gKEfD7uuyZCpOTFAeL50LYtwsaE3QimKVzgZDZD";
 		FacebookClient facebookClient = new DefaultFacebookClient(ACCESS_TOKEN);
 //		try
 //		{
