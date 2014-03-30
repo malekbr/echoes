@@ -3,6 +3,21 @@ import java.io.IOException;
 
 
 
+
+
+
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
+
+
+
+
+
+
+
 //import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -22,16 +37,34 @@ import org.apache.lucene.index.IndexWriter;
 //import org.apache.lucene.util.Version;
 
 
+
+
+
+import com.restfb.Connection;
 import com.restfb.DefaultFacebookClient;
 import com.restfb.FacebookClient;
+import com.restfb.Parameter;
+import com.restfb.types.Post;
+import com.restfb.types.User;
 
 
 public class LuceneTest 
 {
-	private static final String AccessToken = PrivateResource.accessToken;
+	private static final String ACCESS_TOKEN = PrivateResource.accessToken;
 	public static void main(String[] args)
 	{
+		Calendar c = Calendar.getInstance();
+		c.set(2013, 5, 3);
 		FacebookClient facebookClient = new DefaultFacebookClient(ACCESS_TOKEN);
+		Connection<Post> myFeed = facebookClient.fetchConnection("me/feed", Post.class, Parameter.with("since", c.getTime()));
+		myFeed.setSince(c.getTime());
+		System.out.println(myFeed.getData().size());
+		for (List<Post> myFeedConnectionPage : myFeed){
+			for (Post post : myFeedConnectionPage){
+				//System.out.println("Post: " + post);
+				System.out.println("Date: " + post.getCreatedTime());
+			}
+		}
 //		try
 //		{
 //			//	Specify the analyzer for tokenizing text.
