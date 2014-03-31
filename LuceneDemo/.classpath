@@ -2,10 +2,10 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
-	<classpathentry kind="lib" path="C:/libs/Java/lucene-4.7.0/core/lucene-core-4.7.0.jar"/>
-	<classpathentry kind="lib" path="C:/libs/Java/lucene-4.7.0/demo/lucene-demo-4.7.0.jar"/>
-	<classpathentry kind="lib" path="C:/libs/Java/lucene-4.7.0/analysis/common/lucene-analyzers-common-4.7.0.jar"/>
-	<classpathentry kind="lib" path="C:/libs/Java/lucene-4.7.0/queryparser/lucene-queryparser-4.7.0.jar"/>
-	<classpathentry kind="lib" path="C:/libs/Java/restfb-1.6.14/restfb-1.6.14/restfb-1.6.14.jar"/>
+	<classpathentry kind="lib" path="/Users/amin/Downloads/lucene-4.7.0 3/core/lucene-core-4.7.0.jar"/>
+	<classpathentry kind="lib" path="/Users/amin/Downloads/lucene-4.7.0 3/demo/lucene-demo-4.7.0.jar"/>
+	<classpathentry kind="lib" path="/Users/amin/Downloads/lucene-4.7.0 3/analysis/common/lucene-analyzers-common-4.7.0.jar"/>
+	<classpathentry kind="lib" path="/Users/amin/Downloads/lucene-4.7.0 3/queryparser/lucene-queryparser-4.7.0.jar"/>
+	<classpathentry kind="lib" path="/Users/amin/Downloads/restfb-1.6.14/restfb-1.6.14.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
