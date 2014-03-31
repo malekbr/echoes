@@ -6,6 +6,9 @@ import java.util.List;
 
 import org.apache.lucene.analysis.core.StopAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 //import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -28,9 +31,14 @@ import org.apache.lucene.index.IndexWriter;
 import org.echoes.backend.LuceneDoc;
 import org.echoes.backend.MessageDoc;
 import org.echoes.backend.PostDoc;
-
 import com.restfb.*;
 import com.restfb.types.*;
+import com.restfb.Connection;
+import com.restfb.DefaultFacebookClient;
+import com.restfb.FacebookClient;
+import com.restfb.Parameter;
+import com.restfb.types.Post;
+import com.restfb.types.User;
 
 public class LuceneTest {
 	private static final String ACCESS_TOKEN = PrivateResource.accessToken;
@@ -38,7 +46,18 @@ public class LuceneTest {
 
 	public static void main(String[] args) throws IOException {
 //Facebook stuff that gets our data:
-
+		Calendar c = Calendar.getInstance();
+		c.set(2013, 5, 3);
+		FacebookClient facebookClient = new DefaultFacebookClient(ACCESS_TOKEN);
+		Connection<Post> myFeed = facebookClient.fetchConnection("me/feed", Post.class, Parameter.with("since", c.getTime()));
+		myFeed.setSince(c.getTime());
+		System.out.println(myFeed.getData().size());
+		for (List<Post> myFeedConnectionPage : myFeed){
+			for (Post post : myFeedConnectionPage){
+				//System.out.println("Post: " + post);
+				System.out.println("Date: " + post.getCreatedTime());
+			}
+		}
 		
 //Lucene stuff that makes our index:
 		LuceneDoc pd = new PostDoc(123, 5403, 14314, 13413414, "Hello world",
@@ -49,6 +68,7 @@ public class LuceneTest {
 		LuceneTest.buildIndex(indexWriter, pd);
 		LuceneTest.buildIndex(indexWriter, md);
 		indexWriter.close();
+
 	}
 
 	/**
