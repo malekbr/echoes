@@ -10,12 +10,12 @@ package org.echoes.backend;
  * Cast to correct subclass as follows: PostDoc pd = (PostDoc) ld
  */
 public class LuceneDoc {
-	protected long id, from, to, created_time;
-	protected String message, type;
+	protected long created_time;
+	protected String id, from, to, message, type;
 	
 	public static final String ID ="id", FROM="from", TO="to", CREATED_TIME = "created_time", MESSAGE="message", TYPE = "LuceneDoc";
 	
-	public LuceneDoc(long id, long from, long to, long created_time,
+	public LuceneDoc(String id, String from, String to, long created_time,
 			String message) {
 		this.id = id;
 		this.from = from;
@@ -25,27 +25,27 @@ public class LuceneDoc {
 		this.type= LuceneDoc.TYPE;
 	}
 	
-	public long getId() {
+	public String getId() {
 		return id;
 	}
 
-	public void setId(long id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 
-	public long getFrom() {
+	public String getFrom() {
 		return from;
 	}
 
-	public void setFrom(long from) {
+	public void setFrom(String from) {
 		this.from = from;
 	}
 
-	public long getTo() {
+	public String getTo() {
 		return to;
 	}
 
-	public void setTo(long to) {
+	public void setTo(String to) {
 		this.to = to;
 	}
 

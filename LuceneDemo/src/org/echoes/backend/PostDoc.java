@@ -5,7 +5,7 @@ public class PostDoc extends LuceneDoc {
 	protected String story;
 	public static final String STORY = "story", TYPE = "PostDoc";
 	
-	public PostDoc(long id, long from, long to, long created_time,
+	public PostDoc(String id, String from, String to, long created_time,
 			String message, String story) {
 		super(id, from, to, created_time, message);
 		this.story = story;
