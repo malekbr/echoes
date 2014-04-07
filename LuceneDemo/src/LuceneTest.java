@@ -1,6 +1,12 @@
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -32,48 +38,67 @@ public class LuceneTest {
 	private static Document doc;
 
 	public static void main(String[] args) throws IOException {
-//Facebook stuff that gets our data:
+		long start = System.currentTimeMillis();
+		
+		Date lastSync;
 		Calendar c = Calendar.getInstance();
+		
 		c.set(2013, 2, 3);
+		//Last time we got data:
+		try{
+			BufferedReader br = new BufferedReader(new FileReader("lastSync.data"));
+			lastSync = new Date(Long.parseLong(br.readLine()));
+			br.close();
+		} catch(FileNotFoundException e){
+			lastSync = c.getTime();
+		}
+		
+		//Facebook stuff that gets our data:
+		
 		FacebookClient facebookClient = new DefaultFacebookClient(ACCESS_TOKEN);
-		User user = facebookClient.fetchObject("me", User.class);
-		Connection<Post> myFeed = facebookClient.fetchConnection("me/feed", Post.class, Parameter.with("since", c.getTime()));
-		myFeed.setSince(c.getTime());
+		User user = null;
+		try{
+		user = facebookClient.fetchObject("me", User.class);
+		} catch(Exception e){
+			System.err.println("Get a new Access Token");
+			System.err.println("https://developers.facebook.com/tools/explorer/");
+			System.exit(0);
+		}
+		Connection<Post> myFeed = facebookClient.fetchConnection("me/feed", Post.class, Parameter.with("since", lastSync));
+		myFeed.setSince(lastSync);
 		
 		FSDirectory dir = FSDirectory.open(new File("test"));
 		StandardAnalyzer analyzer = new StandardAnalyzer(Version.LUCENE_47);
 		IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_47, analyzer);
 		IndexWriter indexWriter = new IndexWriter(dir, config);
 		
+		long lastPost = lastSync.getTime();
+		long timestamp;
 		for (List<Post> myFeedConnectionPage : myFeed){
 			for (Post post : myFeedConnectionPage){
+				
 				//System.out.println("Post: " + post);
 				//System.out.println("Date: " + post.getCreatedTime());
 				String message = post.getMessage();
 				message = message != null?message:"";
 				String description = post.getDescription();
 				description = description != null?description:"";
-				/*System.out.println(post.getId());
-				System.out.println(message);
-				System.out.println(post.getFrom().getId());
-				System.out.println(user.getId());
-				System.out.println(description);
-				System.out.println(post.getCreatedTime());
-				System.out.println();*/
-				buildIndex(indexWriter, new PostDoc(post.getId(), post.getFrom().getId(), user.getId(), post.getCreatedTime().getTime(), message, description));
+				timestamp = post.getCreatedTime().getTime();
+				if (timestamp>lastPost)
+					lastPost = timestamp;
+				buildIndex(indexWriter, new PostDoc(post.getId(), post.getFrom().getId(), user.getId(), timestamp, message, description));
 			}
 		}
+		BufferedWriter bw = new BufferedWriter(new FileWriter("lastSync.data"));
+		bw.write(Long.toString(lastPost).toString());
+		bw.flush();
+		bw.close();
+//Lucene stuff that searches our index:
 		
-//Lucene stuff that makes our index:
-		/*LuceneDoc pd = new PostDoc(123, 5403, 14314, 13413414, "Hello world",
-				"He shared a picture");
-		LuceneDoc md = new MessageDoc(123, 1434, 13212341, 3424, "Hi there");
-		LuceneTest.buildIndex(indexWriter, pd);
-		LuceneTest.buildIndex(indexWriter, md);*/
 		indexWriter.close();
 		DatabaseSearch db = new DatabaseSearch(dir, PostDoc.MESSAGE);
 		try {
-			TopDocs res = db.performSearch("message:congratulations AND mit", 20);
+			TopDocs res = db.performSearch("message:'finished semester mit'~5", 20);
 			for (ScoreDoc doc : res.scoreDocs){
 				System.out.println(db.getDocument(doc.doc).getField(PostDoc.MESSAGE));
 				System.out.println(db.getDocument(doc.doc).getField(PostDoc.FROM));
@@ -84,7 +109,7 @@ public class LuceneTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
+		System.out.println(System.currentTimeMillis() - start);
 	}
 
 	/**
@@ -102,15 +127,13 @@ public class LuceneTest {
 			doc.add(new LongField(LuceneDoc.CREATED_TIME, ld.getCreated_time(),
 					Field.Store.YES));
 			doc.add(new TextField(LuceneDoc.MESSAGE, ld.getMessage(), Field.Store.YES));
-			if (ld.getType().equals(PostDoc.TYPE)){
+			if (ld instanceof PostDoc){
 				doc.add(new StringField(PostDoc.STORY, ((PostDoc)ld).getStory(), Field.Store.YES));
 				//Put in appropriate segment
-			}else if (ld.getType().equals(MessageDoc.TYPE)){
+			}else if (ld instanceof MessageDoc){
 				//Put in appropriate segment
 			}
 			w.addDocument(doc);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		} catch (IOException e) {e.printStackTrace();}
 	}
 }

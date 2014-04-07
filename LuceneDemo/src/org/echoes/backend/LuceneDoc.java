@@ -9,11 +9,11 @@ package org.echoes.backend;
  * Determine doc type by:  ld.type.equals(PostDoc.TYPE)
  * Cast to correct subclass as follows: PostDoc pd = (PostDoc) ld
  */
-public class LuceneDoc {
+public abstract class LuceneDoc {
 	protected long created_time;
 	protected String id, from, to, message, type;
 	
-	public static final String ID ="id", FROM="from", TO="to", CREATED_TIME = "created_time", MESSAGE="message", TYPE = "LuceneDoc";
+	public static final String ID ="id", FROM="from", TO="to", CREATED_TIME = "created_time", MESSAGE="message";
 	
 	public LuceneDoc(String id, String from, String to, long created_time,
 			String message) {
@@ -22,7 +22,6 @@ public class LuceneDoc {
 		this.to = to;
 		this.created_time = created_time;
 		this.message = message;
-		this.type= LuceneDoc.TYPE;
 	}
 	
 	public String getId() {
@@ -68,9 +67,4 @@ public class LuceneDoc {
 	public String getType() {
 		return type;
 	}
-
-	public void setType(String type) {
-		this.type = type;
-	}
-	
 }
