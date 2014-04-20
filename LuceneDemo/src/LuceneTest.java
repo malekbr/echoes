@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectInputStream.GetField;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -30,6 +31,10 @@ import com.restfb.Connection;
 import com.restfb.DefaultFacebookClient;
 import com.restfb.FacebookClient;
 import com.restfb.Parameter;
+import com.restfb.types.Conversation;
+import com.restfb.types.FacebookType;
+import com.restfb.types.Message;
+import com.restfb.types.NamedFacebookType;
 import com.restfb.types.Post;
 import com.restfb.types.User;
 
@@ -39,11 +44,10 @@ public class LuceneTest {
 
 	public static void main(String[] args) throws IOException {
 		long start = System.currentTimeMillis();
-		
 		Date lastSync;
 		Calendar c = Calendar.getInstance();
 		
-		c.set(2013, 2, 3);
+		c.set(2014, 2, 3);
 		//Last time we got data:
 		try{
 			BufferedReader br = new BufferedReader(new FileReader("lastSync.data"));
@@ -54,7 +58,7 @@ public class LuceneTest {
 		}
 		
 		//Facebook stuff that gets our data:
-		
+
 		FacebookClient facebookClient = new DefaultFacebookClient(ACCESS_TOKEN);
 		User user = null;
 		try{
@@ -64,21 +68,27 @@ public class LuceneTest {
 			System.err.println("https://developers.facebook.com/tools/explorer/");
 			System.exit(0);
 		}
-		Connection<Post> myFeed = facebookClient.fetchConnection("me/feed", Post.class, Parameter.with("since", lastSync));
+		System.out.println(user.getId());
+		Connection<Post> myFeed = facebookClient.fetchConnection(Connection.feedUrl, Post.class, Parameter.with("since", lastSync));
+		//Connection<FacebookType> myOutbox = facebookClient.fetchConnection("me/outbox", FacebookType.class, Parameter.with("since", lastSync), Parameter.with("limit", 100));
+		String query = "SELECT created_time, attachment, body, author_id, created_time FROM message WHERE thread_id IN  (SELECT thread_id FROM thread WHERE folder_id = 1) AND author_id = 100003555168803 ORDER BY created_time";
+		List<Message> myOutbox = facebookClient.executeFqlQuery(query, Message.class);
+		System.out.println(myOutbox);
 		myFeed.setSince(lastSync);
+		//myOutbox.setSince(lastSync);
 		
-		FSDirectory dir = FSDirectory.open(new File("test"));
+		FSDirectory postDir = FSDirectory.open(new File("test"));
+		FSDirectory messageDir = FSDirectory.open(new File("messagetest"));
 		StandardAnalyzer analyzer = new StandardAnalyzer(Version.LUCENE_47);
-		IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_47, analyzer);
-		IndexWriter indexWriter = new IndexWriter(dir, config);
-		
+		IndexWriterConfig config1 = new IndexWriterConfig(Version.LUCENE_47, analyzer);
+		IndexWriterConfig config2 = new IndexWriterConfig(Version.LUCENE_47, analyzer);
+		IndexWriter postSegmentWriter = new IndexWriter(postDir, config1);
+		IndexWriter messageSegmentWriter = new IndexWriter(messageDir, config2);
+
 		long lastPost = lastSync.getTime();
-		long timestamp;
+		long timestamp = 0;
 		for (List<Post> myFeedConnectionPage : myFeed){
 			for (Post post : myFeedConnectionPage){
-				
-				//System.out.println("Post: " + post);
-				//System.out.println("Date: " + post.getCreatedTime());
 				String message = post.getMessage();
 				message = message != null?message:"";
 				String description = post.getDescription();
@@ -86,17 +96,35 @@ public class LuceneTest {
 				timestamp = post.getCreatedTime().getTime();
 				if (timestamp>lastPost)
 					lastPost = timestamp;
-				buildIndex(indexWriter, new PostDoc(post.getId(), post.getFrom().getId(), user.getId(), timestamp, message, description));
+				buildIndex(postSegmentWriter, new PostDoc(post.getId(), post.getFrom().getId(), user.getId(), timestamp, message, description));
 			}
 		}
+		for (Message m : myOutbox){
+				//System.out.println("Post: " + post);
+				//System.out.println("Date: " + post.getCreatedTime());
+				
+				String message =  m.getMessage();
+				message = message != null?message:"";
+				System.out.println(message);
+				if(message.equals(""))
+					continue;
+				timestamp = m.getCreatedTime().getTime();
+				if (timestamp>lastPost)
+					lastPost = timestamp;
+				LuceneDoc md = new MessageDoc(m.getId(), m.getFrom().getId(), user.getId(), timestamp, message);
+				
+				buildIndex(messageSegmentWriter, md);
+		}
+		
 		BufferedWriter bw = new BufferedWriter(new FileWriter("lastSync.data"));
 		bw.write(Long.toString(lastPost).toString());
 		bw.flush();
 		bw.close();
 //Lucene stuff that searches our index:
 		
-		indexWriter.close();
-		DatabaseSearch db = new DatabaseSearch(dir, PostDoc.MESSAGE);
+		messageSegmentWriter.close();
+		postSegmentWriter.close();
+		DatabaseSearch db = new DatabaseSearch(postDir, PostDoc.MESSAGE);
 		try {
 			TopDocs res = db.performSearch("message:'finished semester mit'~5", 20);
 			for (ScoreDoc doc : res.scoreDocs){
@@ -106,7 +134,6 @@ public class LuceneTest {
 			}
 			System.out.println(db.performSearch("'mit'", 20).totalHits);
 		} catch (ParseException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		System.out.println(System.currentTimeMillis() - start);

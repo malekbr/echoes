@@ -27,8 +27,8 @@ package com.restfb;
 
 import static com.restfb.util.StringUtils.isBlank;
 import static java.util.Collections.unmodifiableList;
-import java.util.Date;
 
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -46,12 +46,13 @@ import com.restfb.util.ReflectionUtils;
  * @author <a href="http://restfb.com">Mark Allen</a>
  */
 public class Connection<T> implements Iterable<List<T>> {
-  private FacebookClient facebookClient;
+private FacebookClient facebookClient;
   private Class<T> connectionType;
   private List<T> data;
   private String previousPageUrl;
   private String nextPageUrl;
   private long since = -1;
+  public static final String feedUrl = "me/feed", outboxUrl = "me/outbox";
 
   /**
    * @see java.lang.Iterable#iterator()
