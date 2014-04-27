@@ -38,6 +38,10 @@ import com.restfb.types.NamedFacebookType;
 import com.restfb.types.Post;
 import com.restfb.types.User;
 
+import facebook4j.Facebook;
+import facebook4j.FacebookFactory;
+import facebook4j.auth.AccessToken;
+
 public class LuceneTest {
 	private static final String ACCESS_TOKEN = PrivateResource.accessToken;
 	private static Document doc;
@@ -58,7 +62,7 @@ public class LuceneTest {
 		}
 		
 		//Facebook stuff that gets our data:
-
+		//RestFB
 		FacebookClient facebookClient = new DefaultFacebookClient(ACCESS_TOKEN);
 		User user = null;
 		try{
@@ -69,11 +73,13 @@ public class LuceneTest {
 			System.exit(0);
 		}
 		System.out.println(user.getId());
+		
+		
 		Connection<Post> myFeed = facebookClient.fetchConnection(Connection.feedUrl, Post.class, Parameter.with("since", lastSync));
 		//Connection<FacebookType> myOutbox = facebookClient.fetchConnection("me/outbox", FacebookType.class, Parameter.with("since", lastSync), Parameter.with("limit", 100));
-		String query = "SELECT created_time, attachment, body, author_id, created_time FROM message WHERE thread_id IN  (SELECT thread_id FROM thread WHERE folder_id = 1) AND author_id = 100003555168803 ORDER BY created_time";
-		List<Message> myOutbox = facebookClient.executeFqlQuery(query, Message.class);
-		System.out.println(myOutbox);
+		//String query = "SELECT created_time, attachment, body, author_id, created_time FROM message WHERE thread_id IN  (SELECT thread_id FROM thread WHERE folder_id = 1) AND author_id ="+user.getId()+" ORDER BY created_time";
+		//List<Message> myOutbox = facebookClient.executeFqlQuery(query, Message.class);
+//		System.out.println(myOutbox);
 		myFeed.setSince(lastSync);
 		//myOutbox.setSince(lastSync);
 		
@@ -99,22 +105,22 @@ public class LuceneTest {
 				buildIndex(postSegmentWriter, new PostDoc(post.getId(), post.getFrom().getId(), user.getId(), timestamp, message, description));
 			}
 		}
-		for (Message m : myOutbox){
+//		for (Message m : myOutbox){
 				//System.out.println("Post: " + post);
 				//System.out.println("Date: " + post.getCreatedTime());
 				
-				String message =  m.getMessage();
-				message = message != null?message:"";
-				System.out.println(message);
-				if(message.equals(""))
-					continue;
-				timestamp = m.getCreatedTime().getTime();
-				if (timestamp>lastPost)
-					lastPost = timestamp;
-				LuceneDoc md = new MessageDoc(m.getId(), m.getFrom().getId(), user.getId(), timestamp, message);
-				
-				buildIndex(messageSegmentWriter, md);
-		}
+//				String message =  m.getMessage();
+//				message = message != null?message:"";
+//				System.out.println(message);
+//				if(message.equals(""))
+//					continue;
+//				timestamp = m.getCreatedTime().getTime();
+//				if (timestamp>lastPost)
+//					lastPost = timestamp;
+//				LuceneDoc md = new MessageDoc(m.getId(), m.getFrom().getId(), user.getId(), timestamp, message);
+//				
+//				buildIndex(messageSegmentWriter, md);
+//		}
 		
 		BufferedWriter bw = new BufferedWriter(new FileWriter("lastSync.data"));
 		bw.write(Long.toString(lastPost).toString());

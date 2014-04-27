@@ -8,5 +8,6 @@
 	<classpathentry kind="lib" path="/Users/amin/Downloads/lucene-4.7.0 3/queryparser/lucene-queryparser-4.7.0.jar"/>
 	<classpathentry kind="lib" path="/Users/amin/Downloads/restfb-1.6.14/restfb-1.6.14.jar"/>
 	<classpathentry kind="lib" path="/Applications/weka-3-6-10/weka.jar"/>
+	<classpathentry kind="lib" path="/Users/amin/Downloads/facebook4j-core-2.1.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
